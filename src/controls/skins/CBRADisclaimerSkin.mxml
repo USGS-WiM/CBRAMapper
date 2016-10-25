@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 03.29.11 - NE - Created. -->
+<!--
+
+    ADOBE SYSTEMS INCORPORATED
+    Copyright 2008 Adobe Systems Incorporated
+    All Rights Reserved.
+
+    NOTICE: Adobe permits you to use, modify, and distribute this file
+    in accordance with the terms of the license agreement accompanying it.
+
+-->
+
+<!--- The default skin class for a Spark SkinnableContainer container.  
+
+     @see spark.components.SkinnableContainer
+        
+      @langversion 3.0
+      @playerversion Flash 10
+      @playerversion AIR 1.5
+      @productversion Flex 4
+-->
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009" xmlns:s="library://ns.adobe.com/flex/spark" 
+    xmlns:fb="http://ns.adobe.com/flashbuilder/2009" xmlns:mx="library://ns.adobe.com/flex/mx"
+	height="{hostComponent.map.height}" width="{hostComponent.map.width}" creationComplete="creationComplete(event)">
+    <fx:Metadata>[HostComponent("controls.CBRADisclaimer")]</fx:Metadata>
+
+    <fx:Script fb:purpose="styling">
+        <![CDATA[         
+			import mx.events.FlexEvent;
+            /**
+             *  @private
+             */
+            override protected function updateDisplayList(unscaledWidth:Number, unscaledHeight:Number) : void
+            {
+                // Push backgroundColor and backgroundAlpha directly.
+                // Handle undefined backgroundColor by hiding the background object.
+                if (isNaN(getStyle("backgroundColor")))
+                {
+                    background.visible = false;
+                }
+                else
+                {
+                    background.visible = true;
+                    bgFill.color = getStyle("backgroundColor");
+                    bgFill.alpha = getStyle("backgroundAlpha");
+                }
+                
+                super.updateDisplayList(unscaledWidth, unscaledHeight);
+            }
+			
+			protected function closeDisclaimer():void {
+				hostComponent.visible = false;
+			}
+
+			protected function creationComplete(event:FlexEvent):void
+			{
+				if (hostComponent.title != null) {
+					title.text = hostComponent.title
+				}
+				if (hostComponent.disclaimerText != null) {
+					textContainer.removeChild(disclaimerHtmlTextObject);
+					disclaimerTextObject.text = hostComponent.disclaimerText;
+				} else if (hostComponent.disclaimerHtmlText != null) {
+					textContainer.removeChild(disclaimerTextObject);
+					disclaimerHtmlTextObject.htmlText = hostComponent.disclaimerHtmlText.htmlText;
+				}
+			}
+
+		]]>        
+    </fx:Script>
+    
+    <s:states>
+        <s:State name="normal" />
+        <s:State name="disabled" />
+    </s:states>
+    
+    <!--- Defines the appearance of the SkinnableContainer class's background. -->
+    <s:Rect id="background" left="0" right="0" top="0" bottom="0">
+        <s:fill>
+            <s:SolidColor id="bgFill" color="black"/>
+        </s:fill>
+    </s:Rect>
+    
+    <!--
+        Note: setting the minimum size to 0 here so that changes to the host component's
+        size will not be thwarted by this skin part's minimum size.   This is a compromise,
+        more about it here: http://bugs.adobe.com/jira/browse/SDK-21143
+    -->
+    <!--- @copy spark.components.SkinnableContainer#contentGroup -->
+	<mx:Box width="100%" height="100%" backgroundColor="black" backgroundAlpha="0.7" horizontalAlign="center" verticalAlign="middle" >
+		<mx:VBox alpha="0.75" color="white" fontWeight="bold" backgroundColor="0x000000" borderStyle="solid" borderColor="black" cornerRadius="5" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"  >
+			<mx:HBox width="100%">
+				<mx:Label id="title" visible="{(hostComponent.title != null) ? true : false}" includeInLayout="{(hostComponent.title != null) ? true : false}" fontSize="14"/>
+			</mx:HBox>
+			<mx:VBox backgroundAlpha="0.75" color="black" backgroundColor="0xFFFFFF" horizontalScrollPolicy="off" borderStyle="solid" cornerRadius="5" 
+					 paddingBottom="10" paddingLeft="5" paddingRight="5" paddingTop="5">
+				<mx:VBox id="textContainer" width="600" maxHeight="600" verticalScrollPolicy="{(textContainer.height &lt; textContainer.maxHeight) ? 'off' : 'on'}">
+					<mx:Text id="disclaimerTextObject" width="{(textContainer.verticalScrollPolicy == 'off') ? textContainer.width : textContainer.width-20}" />
+					<mx:Text id="disclaimerHtmlTextObject" visible="{(textContainer.height &lt; 15) ? false : true}" width="{(textContainer.verticalScrollPolicy == 'off') ? textContainer.width : textContainer.width-20}" />
+				</mx:VBox>
+				<mx:Box horizontalAlign="center" width="100%">
+					<mx:Button label="I Agree" click="closeDisclaimer()" />
+				</mx:Box>
+			</mx:VBox>
+		</mx:VBox>
+	</mx:Box>
+
+</s:Skin>
