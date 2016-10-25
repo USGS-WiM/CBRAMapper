@@ -1,0 +1,767 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 07.01.14 - BAD - added some requested text to the bottom of the popup (CBRADataWindow.mxml)-->
+<!-- 04.17.14 - BAD - fixed issus with Total Acreage field - had been concatenating instead of adding. Now fixed to adding. -->
+<!-- 03.06.14 - BAD - updated some of the things diplayed in the popup per request.-->
+<!-- 01.22.13 - BAD - updated services URLs to wim.usgs.gov domain-->
+<!-- 01.07.13 - BAD - updated services URLs to reflect change in virtual IP of the server.-->
+<!-- 01.03.13 - BAD - updated measureMap control to display feet instead of miles for line distance measure.-->
+<!-- 11.29.12 - BAD - updated services URL to new wim1 virtual server location.-->
+<!-- 11.28.12 - BAD - changed CBRS search box to be expanded by default and tweaked the search hint.-->
+<!-- 11.27.12 - BAD - tweaked language in the disclaimer box.-->
+<!-- 11.20.12 - BAD - added popup to click on the buffer zone.-->
+<!-- 11.20.12 - BAD - tweaked toggle box properties to display only when layer is visible, and fixed issue with opacity slider.-->
+<!-- 11.16.12 - BAD - updated disclaimer box visually to reflect requests form clients, fixed issue with legend item capitalization, fixed measure tool, updated title.-->
+<!-- 11.15.12 - BAD - updated text in CBRS BUffer Zones info popup.-->
+<!-- 11.15.12 - BAD - changed banner text to plural "Resources", added a popup explainer for CBRS Units Information, updated disclaimer text.-->
+<!-- 11.15.12 - BAD - updated legend items to display in accordance with scale dependency of associated layers.-->
+<!-- 11.15.12 - BAD - updated field name for name of CBRS unit after a change in the data.-->
+<!-- 11.14.12 - BAD - added USGS topo basemap layer, added measure button, but tool still needs finishing-->
+<!-- 11.14.12 - BAD - added legends, added an popup explainer for CBRS Buffer Zones layer, changed extent. -->
+<!-- 11.09.12 - BAD - changed basemap buttons to display text instead of icon, changed geocoder button text and made it expanded by default. -->
+<!-- 10.29.12 - BAD - changed disclaimer text. -->
+<!-- 04.07.11 - NE - Removed ESRI Legend. Add symbology for multiple features on identify. -->
+<!-- 04.04.11 - NE - Added ESRI Legend component for testing. -->
+<!-- 04.01.11 - NE - Changed default basemap to imagery w/labels. -->
+<!-- 03.31.11 - NE - Added CBRS Search. -->
+<!-- 03.30.11 - NE - Update to Base map selector. -->
+<!-- 03.29.11 - NE - Added WiMDisclaimer. -->
+<!-- 03.29.11 - NE - Added CBRA map service and initial set up of operational layers box. -->
+<!-- 03.28.11 - NE - Initial check in. -->
+<!-- 03.17.11 - NE - Begin as CBRA Mapper -->
+
+<!-- 03.17.11 - NE - End as template -->
+
+<!-- 03.14.11 - NE - Updated to include many WiM controls.  Base map selector, full screen button, collapsing search for geocoder, history. -->
+<!-- 12.13.10 - NE - Updated extent navigator location.  changed cursor to standard arrow. -->
+<!-- 12.06.10 - JB - Updated Well-Known ID. -->
+<!-- 07.28.10 - JB - updated geocode tag for 2.0 -->
+<!-- 06.28.10 - JB - Added new Wim LayerLegend component -->
+<!-- 05.25.10 - JB - Cleared FWS references from print template -->
+<!-- 03.26.10 - JB - Initial template creation. -->
+<mx:Application xmlns:mx="library://ns.adobe.com/flex/mx"
+				xmlns:fx="http://ns.adobe.com/mxml/2009"
+				xmlns:s="library://ns.adobe.com/flex/spark"
+				xmlns:esri="http://www.esri.com/2008/ags"
+				xmlns:wimControls="gov.usgs.wim.controls.*"
+				xmlns:localControls="controls.*"
+				xmlns:navigationClasses="com.esri.ags.controls.navigationClasses.*"
+				xmlns:cbraControls="cbraControls.*"
+				layout="absolute" pageTitle="FWS CBRA Mapper" xmlns:local="*">
+    
+    <fx:Style source="assets/styles/main.css"/>
+    <fx:Script source="CBRAMapper.as"/>
+	
+    
+	<fx:Declarations>
+		
+		<esri:GeometryService id="geomService" url="https://fws.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+		
+		<esri:NavigationTool id="navToolbar" map="{map}"/>
+		
+		<esri:Locator id="locator"
+					  outSpatialReference="{map.spatialReference}"
+					  url="https://geocode.arcgis.com/arcgis/rest/services/World/GeocodeServer"/>
+				
+		<esri:SimpleFillSymbol id="aQuerySym" alpha="0.25" color="0x000000" style="null">
+	    	<esri:outline>
+	    		<esri:SimpleLineSymbol width="2" color="0xFFFF00" style="solid"/>
+	    	</esri:outline>
+	    </esri:SimpleFillSymbol> 
+		
+		<esri:SimpleFillSymbol id="bQuerySym" alpha="0.25" color="0x000000" style="null">
+			<esri:outline>
+				<esri:SimpleLineSymbol width="2" color="0xFF00FF" style="solid"/>
+			</esri:outline>
+		</esri:SimpleFillSymbol>
+		
+		
+		<esri:FindTask id="cbrsTask" executeComplete="cbrsResult(event)" showBusyCursor="true"
+					   url="https://fws.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer"/>
+		<esri:FindParameters id="cbrsParams" contains="true" layerIds="[4]"
+							 outSpatialReference="{map.spatialReference}" returnGeometry="true"
+							 searchFields="[Unit]" searchText="{cbrsSearch.searchValue.text}"/>
+		
+		<esri:PictureMarkerSymbol id="pushPinSym"
+								  source="@Embed(source='assets/images/grn-pushpin.png')"/>
+		
+		<!-- Info Box for push pin -->
+		
+		<esri:InfoSymbol id="ptGraphicSym" containerStyleName="wetInfo" infoPlacement="{windLoc}">
+			<esri:infoRenderer>
+				<fx:Component>
+					<mx:VBox width="100%" alpha="0.75" styleName="poiBox">
+						<fx:Style>                        
+							.InfoCloseButton {                        
+							disabledSkin: Embed(source="assets/skins.swf", symbol="Callout_closeButtonDisabledSkin");                        
+							downSkin: Embed(source="assets/skins.swf", symbol="Callout_closeButtonDownSkin");                        
+							overSkin: Embed(source="assets/skins.swf", symbol="Callout_closeButtonOverSkin");                        
+							upSkin: Embed(source="assets/skins.swf", symbol="Callout_closeButtonUpSkin");
+							position: absolute;
+							top: 2;
+							right: 2;                    
+							}                        
+							.InfoExpandButton {                        
+							disabledSkin: Embed(source="assets/skins.swf", symbol="Callout_expandButtonDisabledSkin");                        
+							downSkin: Embed(source="assets/skins.swf", symbol="Callout_expandButtonDownSkin");                        
+							overSkin: Embed(source="assets/skins.swf", symbol="Callout_expandButtonOverSkin");                        
+							upSkin: Embed(source="assets/skins.swf", symbol="Callout_expandButtonUpSkin");                        
+							}    
+							.line {
+							text-decoration: underline;
+							color: blue;
+							}
+							.noline {
+							color: black;
+							text-decoration: none;
+							}                
+						</fx:Style>
+						<fx:Script>
+							<![CDATA[
+								
+								import mx.controls.Alert;
+								import mx.binding.utils.ChangeWatcher;
+								
+								private function infoClear():void
+								{
+								parent.parent.visible = false;
+								}
+							
+							]]>
+						</fx:Script>
+						<mx:HBox width="100%">
+							<mx:Label color="white" fontSize="12" fontWeight="bold"
+									  text="Find Results"/>
+							<mx:HBox width="100%" horizontalGap="0"/>
+							<mx:Button id="closeButton" width="18" height="18" click="infoClear()"
+									   styleName="InfoCloseButton"/>
+						</mx:HBox>
+						<mx:VBox width="100%" paddingBottom="5" paddingLeft="5" paddingRight="5"
+								 paddingTop="10" styleName="poiContain" verticalGap="0">
+							<mx:HBox width="200" horizontalGap="0">
+								<mx:Text text="Location identified is only as precise as the ... User should visually inspect the aerial imagery to locate the specific area of interest."/>
+							</mx:HBox>
+						</mx:VBox>
+					</mx:VBox>
+				</fx:Component>
+			</esri:infoRenderer>
+		</esri:InfoSymbol>
+	    	    
+	    <!-- Info Box Symbol for displaying layer query results -->
+	    	   	
+		
+		<esri:InfoSymbol id="singleGraphicSym" containerStyleName="wetInfo">
+	   		<esri:infoRenderer>
+	   			<fx:Component>
+	   				<mx:VBox width="100%" styleName="infoBox">		   				
+		   				<fx:Style source="assets/styles/infoSymbolBox.css"/>
+	   					<fx:Script>
+	   						<![CDATA[
+	   							import mx.controls.Alert;
+    							
+    							private function infoClear():void
+	   							{
+	   								parent.parent.visible = false;
+	   							}
+	   							
+	   						]]>
+	   					</fx:Script>
+	   					<mx:HBox width="100%">
+		   					<mx:Label color="white" fontSize="12" fontWeight="bold"
+									  text="{data.title}"/>
+	   						<mx:HBox width="100%" horizontalGap="0"/>
+				   			<mx:Button id="closeButton" width="18" height="18" click="infoClear()"
+									   styleName="InfoCloseButton"/>
+			   			</mx:HBox>
+			   			<mx:VBox width="100%" paddingBottom="5" paddingLeft="5" paddingRight="5"
+								 paddingTop="10" styleName="poiContain" verticalGap="0">
+			   				<mx:HBox horizontalGap="0">
+				   				<mx:Text fontWeight="bold" text=""/>
+				   				<mx:Text text="{data.value}"/>
+			   				</mx:HBox>
+			   			</mx:VBox>
+				   	</mx:VBox>
+				</fx:Component>
+	   		</esri:infoRenderer>
+		</esri:InfoSymbol>
+		
+		
+		<esri:InfoSymbol id="singleGraphicSym2" containerStyleName="wetInfo">
+			<esri:infoRenderer>
+				<fx:Component>
+					<mx:VBox width="100%" styleName="infoBox2">		   				
+						<fx:Style source="assets/styles/infoSymbolBox.css"/>
+						<fx:Script>
+							<![CDATA[
+								import mx.controls.Alert;
+								
+								private function infoClear():void
+								{
+									parent.parent.visible = false;
+								}
+								
+							]]>
+						</fx:Script>
+						<mx:HBox width="100%">
+							<mx:Label color="white" fontSize="12" fontWeight="bold"
+									  text="{data.title}"/>
+							<mx:HBox width="100%" horizontalGap="0"/>
+							<mx:Button id="closeButton" width="18" height="18" click="infoClear()"
+									   styleName="InfoCloseButton"/>
+						</mx:HBox>
+						<mx:VBox width="100%" paddingBottom="5" paddingLeft="5" paddingRight="5"
+								 paddingTop="10" styleName="poiContain" verticalGap="0">
+							<mx:HBox horizontalGap="0">
+								<mx:Text fontWeight="bold" text=""/>
+								<mx:Text text="{data.value}"/>
+							</mx:HBox>
+						</mx:VBox>
+					</mx:VBox>
+				</fx:Component>
+			</esri:infoRenderer>
+		</esri:InfoSymbol>
+		
+		<esri:InfoSymbol id="singleGraphicSym3" containerStyleName="wetInfo">
+			<esri:infoRenderer>
+				<fx:Component>
+					<mx:VBox width="100%" styleName="infoBox3">		   				
+						<fx:Style source="assets/styles/infoSymbolBox.css"/>
+						<fx:Script>
+							<![CDATA[
+								import mx.controls.Alert;
+								
+								private function infoClear():void
+								{
+									parent.parent.visible = false;
+								}
+								
+							]]>
+						</fx:Script>
+						<mx:HBox width="100%">
+							<mx:Label color="white" fontSize="12" fontWeight="bold"
+									  text="{data.title}"/>
+							<mx:HBox width="100%" horizontalGap="0"/>
+							<mx:Button id="closeButton" width="18" height="18" click="infoClear()"
+									   styleName="InfoCloseButton"/>
+						</mx:HBox>
+						<mx:VBox width="100%" paddingBottom="5" paddingLeft="5" paddingRight="5"
+								 paddingTop="10" styleName="poiContain" verticalGap="0">
+							<mx:HBox horizontalGap="0">
+								<mx:Text fontWeight="bold" text=""/>
+								<mx:Text text="{data.value}"/>
+							</mx:HBox>
+						</mx:VBox>
+					</mx:VBox>
+				</fx:Component>
+			</esri:infoRenderer>
+		</esri:InfoSymbol>
+		
+		
+		<!--<mx:Text id="disclaimerHtml">
+			<mx:htmlText>
+				<![CDATA[<font size="14"><p>The U.S. Fish and Wildlife Service (Service) is not responsible for any misuse or misinterpretation of this digital data set, including use of these boundaries (which are approximate digital representations of the boundaries shown on the official maps) to determine eligibility for Federal expenditures and financial assistance including Federal flood insurance. The official Coastal Barrier Resources System (CBRS) maps (not these digital data) are the controlling documents of the CBRS boundaries and are maintained by the Service. </p><br/><p>Copies of the official CBRS maps are available for viewing at the Service Headquarters office and are also available for download on the CBRS Mapper and at <font color='#FFE303'><a target='_blank' href='http://www.fws.gov/CBRA/Maps/'>http://www.fws.gov/CBRA/Maps/</a></font>. For information on obtaining an official determination of whether or not an area or specific property is located within the CBRS, please visit:  <font color='#FFE303'><a target='_blank' href='http://www.fws.gov/cbra/Determinations.html'>http://www.fws.gov/cbra/Determinations.html</a></font>. For information on project consultations, please visit: <font color='#FFE303'><a target='_blank' href='http://www.fws.gov/cbra/Consultations.html'>http://www.fws.gov/cbra/Consultations.html</a></font>. For general questions regarding the CBRS, you may contact <font color='#FFE303'><a target='_blank' href="mailto:cbra@fws.gov">CBRA@fws.gov</a></font>. For information on the horizontal accuracy of this digital data set, please read the <font color='#FFE303'><a target='_blank' href='http://www.fws.gov/CBRA/Maps/metadata.html'>metadata</a></font>. </p><br/><p>Links to non-Service websites do not imply any official Service endorsement of the opinions or ideas expressed therein, or guarantee the validity of the information provided.  Base cartographic information used as part of this CBRS Mapper has been provided through third party products.  The Service does not maintain, and is not responsible for the accuracy or completeness of the base cartographic information.  Recent shoreline changes due to major storm events may not represented in the base imagery or the CBRS data.</p>]]>
+			</mx:htmlText>
+		</mx:Text>-->
+
+		<!-- End Info Box Symbol -->
+		
+		<fx:Array id="textArray">             
+			<fx:Object label="Streets">
+				<fx:toolTip>Streets</fx:toolTip>
+			</fx:Object>  
+			<fx:Object label="Imagery/Labels">
+				<fx:toolTip>Imagery/Labels</fx:toolTip>
+			</fx:Object>
+			<fx:Object label="Topo">
+				<fx:toolTip>Topo</fx:toolTip>
+			</fx:Object>
+			<fx:Object label="USGS Topo">
+				<fx:toolTip>USGS Topo</fx:toolTip>
+			</fx:Object>
+		</fx:Array>
+		
+		
+		<s:BorderContainer id="infoBox" backgroundColor="white" cornerRadius="5">
+			
+			<s:VGroup width="100%">
+				
+				<mx:HBox width="100%" backgroundColor="black" cornerRadius="5" paddingBottom="5"
+						 paddingLeft="5" paddingRight="5" paddingTop="5" textAlign="center">
+					<mx:Text width="100%" color="white" fontSize="14" fontWeight="bold"
+							 text="CBRS Buffer Zone Information"/>
+					<s:Group left="4">
+						<s:Ellipse top="2" width="16" height="16">
+							<s:fill><s:SolidColor color="gray"/></s:fill>
+						</s:Ellipse>
+						<s:Label left="4" bottom="1" height="16" buttonMode="true"
+								 click="PopUpManager.removePopUp(infoBox.parent as IFlexDisplayObject)"
+								 color="white" fontSize="12" text="X" toolTip="Close"
+								 verticalAlign="bottom"/>	
+					</s:Group>	
+				</mx:HBox>
+				
+				<mx:VBox width="600" height="250" paddingLeft="10" paddingRight="10" paddingTop="5"
+						 verticalGap="0">
+					
+					<mx:Text width="100%" condenseWhite="true" textAlign="left">
+						<mx:htmlText>
+							<![CDATA[
+							<p>The CBRS Buffer Zone represents the area immediately adjacent to the CBRS boundary where 
+							users are advised to contact the U.S. Fish and Wildlife Service for an official determination 
+							as to whether the property or project site is located “in” or “out” of the CBRS.  
+							For information on obtaining an official CBRS property determination, please visit: 
+							<font  color="#0000FF"><a target="_blank" href="http://www.fws.gov/cbra/Determinations.html">http://www.fws.gov/cbra/Determinations.html</a></font>.</p><br />
+							
+							<p>For more information on project consultations, please visit: <font  color="#0000FF"><a target="_blank" href="http://www.fws.gov/cbra/Consultations.html">http://www.fws.gov/cbra/Consultations.html</a></font>.</p><br /></p><br />
+							
+							]]>
+						</mx:htmlText>
+					</mx:Text>	
+					<mx:Image buttonMode="true"
+							  click="navigateToURL(new URLRequest('http://www.fws.gov/'))"
+							  mouseChildren="false" source="./assets/images/fwsLogo.png"
+							  toolTip="US Fish and Wildlife Service" useHandCursor="true"/>					
+				</mx:VBox>
+			</s:VGroup>			
+			
+		</s:BorderContainer>
+		
+		
+		<s:BorderContainer id="infoBox2" backgroundColor="white" cornerRadius="5">
+			
+			<s:VGroup width="100%">
+				
+				<mx:HBox width="100%" backgroundColor="black" cornerRadius="5" paddingBottom="5"
+						 paddingLeft="5" paddingRight="5" paddingTop="5" textAlign="center">
+					<mx:Text width="100%" color="white" fontSize="14" fontWeight="bold"
+							 text="CBRS Units Information"/>
+					<s:Group left="4">
+						<s:Ellipse top="2" width="16" height="16">
+							<s:fill><s:SolidColor color="gray"/></s:fill>
+						</s:Ellipse>
+						<s:Label left="4" bottom="1" height="16" buttonMode="true"
+								 click="PopUpManager.removePopUp(infoBox2.parent as IFlexDisplayObject)"
+								 color="white" fontSize="12" text="X" toolTip="Close"
+								 verticalAlign="bottom"/>	
+					</s:Group>	
+				</mx:HBox>
+				
+				<mx:VBox width="600" height="350" paddingLeft="10" paddingRight="10" paddingTop="5"
+						 verticalGap="0">
+					
+					<mx:Text width="100%" condenseWhite="true" textAlign="left">
+						<mx:htmlText>
+							<![CDATA[
+							<p>The Coastal Barrier Resources System (CBRS) contains two types of mapped units, 
+							System units and Otherwise Protected Areas (OPAs). OPAs are denoted with a "P" at 
+							the end of the unit designation (e.g., FL-64P, P10P).</p><br />
+							
+							<p><b>System Units</b> are generally comprised of private lands that were relatively undeveloped 
+							at the time of their designation within the CBRS. The boundaries of these units are generally
+							intended to follow geomorphic, development, or cultural features. Most new Federal expenditures 
+							and financial assistance, including Federal flood insurance, are prohibited within System units.</p><br />
+							
+							<p><b>OPAs</b> are generally comprised of lands held by a qualified organization primarily for wildlife 
+							refuge, sanctuary, recreational, or natural resource conservation purposes. The boundaries of these
+							units are generally intended to coincide with the boundaries of conservation or recreation areas such 
+							as state parks and national wildlife refuges. The only Federal spending prohibition within OPAs is the 
+							prohibition on Federal flood insurance.</p><br />
+							
+							<p>For more information visit the CBRS <font  color="#0000FF"><a target="_blank" href="http://www.fws.gov/CBRA/Act/index.html#CBRS">webpage</a></font> and the CBRS Unit <font  color="#0000FF"><a target="_blank" href="http://www.fws.gov/CBRA/Maps/metadata.html">metadata</a></font>.</p><br />
+							
+							
+							]]>
+						</mx:htmlText>
+					</mx:Text>	
+					<mx:Image buttonMode="true"
+							  click="navigateToURL(new URLRequest('http://www.fws.gov/'))"
+							  mouseChildren="false" source="./assets/images/fwsLogo.png"
+							  toolTip="US Fish and Wildlife Service" useHandCursor="true"/>					
+				</mx:VBox>
+			</s:VGroup>			
+			
+		</s:BorderContainer>
+		
+		
+		<s:BorderContainer id="infoBox3" backgroundColor="white" cornerRadius="5">
+			
+			<s:VGroup width="100%">
+				
+				<mx:HBox width="100%" backgroundColor="black" cornerRadius="5" paddingBottom="5"
+						 paddingLeft="5" paddingRight="5" paddingTop="5" textAlign="center">
+					<mx:Text width="100%" color="white" fontSize="14" fontWeight="bold"
+							 text="CBRS Unit Buffer Zone"/>
+					<s:Group left="4">
+						<s:Ellipse top="2" width="16" height="16">
+							<s:fill><s:SolidColor color="gray"/></s:fill>
+						</s:Ellipse>
+						<s:Label left="4" bottom="1" height="16" buttonMode="true"
+								 click="PopUpManager.removePopUp(infoBox3.parent as IFlexDisplayObject)"
+								 color="white" fontSize="12" text="X" toolTip="Close"
+								 verticalAlign="bottom"/>	
+					</s:Group>	
+				</mx:HBox>
+				
+				<mx:VBox width="500" height="260" paddingLeft="10" paddingRight="10" paddingTop="5"
+						 verticalGap="0">
+					
+					<mx:Text width="100%" condenseWhite="true" textAlign="left">
+						<mx:htmlText>
+							<![CDATA[
+							<p>You have clicked within the CBRS Buffer Zone.  The CBRS Buffer Zone represents the area 
+							immediately adjacent to the CBRS boundary where <b>users are advised to contact the U.S. Fish 
+							and Wildlife Service for an official determination as to whether the property or project site 
+							is located “in” or “out” of the CBRS.</b>  For information on obtaining an official CBRS property 
+							determination, please visit: 
+							<font  color="#0000FF"><a target="_blank" href="http://www.fws.gov/cbra/Determinations.html">http://www.fws.gov/cbra/Determinations.html</a></font>.</p><br />
+							
+							<p>For more information on project consultations, please visit: <font  color="#0000FF"><a target="_blank" href="http://www.fws.gov/cbra/Consultations.html">http://www.fws.gov/cbra/Consultations.html</a></font>.</p><br /></p><br />
+							
+							]]>
+						</mx:htmlText>
+					</mx:Text>	
+					<mx:Image buttonMode="true"
+							  click="navigateToURL(new URLRequest('http://www.fws.gov/'))"
+							  mouseChildren="false" source="./assets/images/fwsLogo.png"
+							  toolTip="US Fish and Wildlife Service" useHandCursor="true"/>					
+				</mx:VBox>
+			</s:VGroup>			
+			
+		</s:BorderContainer>
+		
+		<s:BorderContainer id="tierInfoBox" backgroundColor="white" cornerRadius="5">
+			
+			<s:VGroup width="100%">
+				
+				<mx:HBox width="100%" backgroundColor="black" cornerRadius="5" paddingBottom="5"
+						 paddingLeft="5" paddingRight="5" paddingTop="5" textAlign="center">
+					<mx:Text width="100%" color="white" fontSize="14" fontWeight="bold"
+							 text="Data Accuracy Tier Information"/>
+					<s:Group left="4">
+						<s:Ellipse top="2" width="16" height="16">
+							<s:fill><s:SolidColor color="gray"/></s:fill>
+						</s:Ellipse>
+						<s:Label left="4" bottom="1" height="16" buttonMode="true"
+								 click="PopUpManager.removePopUp(tierInfoBox.parent as IFlexDisplayObject)"
+								 color="white" fontSize="12" text="X" toolTip="Close"
+								 verticalAlign="bottom"/>	
+					</s:Group>	
+				</mx:HBox>
+				
+				<mx:VBox width="600" height="250" paddingLeft="10" paddingRight="10" paddingTop="5"
+						 verticalGap="0">
+					
+					<mx:Text width="100%" condenseWhite="true" textAlign="left">
+						<mx:htmlText>
+							<![CDATA[
+							<p>The CBRS polygons in this data set have two tiers of horizontal accuracy depending on 
+							the methods used for digitization of the boundaries, and the age and quality of the official 
+							CBRS map. Tier 1 polygons are of lower quality and accuracy than Tier 2 polygons. As the Service 
+							modernizes the CBRS maps, Tier 1 polygons will be upgraded to Tier 2.  The size of the CBRS Buffer 
+							Zone applied to each unit depends upon the Tier of the data for that unit.  Tier 1 data has a larger 
+							CBRS Buffer Zone (150 feet on either side of the boundary) while Tier 2 data has a smaller CBRS Buffer 
+							Zone (20 feet on either side of the boundary).  For additional information concerning the accuracy 
+							of the CBRS data, please see the CBRS boundary <font color='#0000FF'><a target='_blank' href='http://www.fws.gov/CBRA/Maps/metadata.html'>metadata</a></font>.</p><br />
+							
+							<p>The CBRS Buffer Zone represents the area immediately adjacent to the CBRS boundary where users are advised 
+							to contact the Service for an official determination as to whether the property or project site is located 
+							“in” or “out” of the CBRS. For information on obtaining an official CBRS property determination, 
+							please visit: <font color='#0000FF'><a target='_blank' href='http://www.fws.gov/cbra/Determinations.html'>http://www.fws.gov/cbra/Determinations.html</a></font>.
+
+														
+							]]>
+						</mx:htmlText>
+					</mx:Text>	
+					<mx:Image buttonMode="true"
+							  click="navigateToURL(new URLRequest('http://www.fws.gov/'))"
+							  mouseChildren="false" source="./assets/images/fwsLogo.png"
+							  toolTip="US Fish and Wildlife Service" useHandCursor="true"/>					
+				</mx:VBox>
+			</s:VGroup>			
+			
+		</s:BorderContainer>
+
+		
+	  
+	</fx:Declarations>
+	
+	<!-- Main Map -->
+	
+    <esri:Map id="map" extentChange="onExtentChange()" load="load()" logoVisible="false"
+			  mapClick="onMapClick(event)" navigationClass="gov.usgs.wim.controls.WiMNavigation"
+			  openHandCursorVisible="false" styleName="mapStyle">
+    	<esri:extent>            
+			<esri:Extent id="init" xmax="-4565000" xmin="-13958000" ymax="6568000" ymin="1808000">                
+				<esri:SpatialReference wkid="102100"/>            
+			</esri:Extent>        
+		</esri:extent>		
+		
+		<esri:ArcGISTiledMapServiceLayer visible="{baseLayers.selectedLayer == 0}"
+										 show="baseSwitch(event)"
+										 url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer"/>
+		<esri:ArcGISTiledMapServiceLayer visible="{baseLayers.selectedLayer == 1}"
+										 show="baseSwitch(event)"
+										 url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer"/>
+		<esri:ArcGISTiledMapServiceLayer id="labelsMapLayer"
+										 visible="{baseLayers.selectedLayer == 1 &amp;&amp; baseLayers.showLabels}"
+										 show="baseSwitch(event)"
+										 url="https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer"/>
+		<esri:ArcGISTiledMapServiceLayer visible="{baseLayers.selectedLayer == 2}"
+										 show="baseSwitch(event)"
+										 url="https://services.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer"/>
+		<esri:ArcGISTiledMapServiceLayer visible="{baseLayers.selectedLayer == 3}"
+										 show="baseSwitch(event)"
+										 url="https://services.arcgisonline.com/ArcGIS/rest/services/USA_Topo_Maps/MapServer"/>
+		
+	    <esri:ArcGISDynamicMapServiceLayer id="cbrsBufferZone" visible="true" alpha="0.65"
+										   name="CBRS Determination Zones"
+										   url="https://fws.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer">
+   			<esri:visibleLayers>             
+	   			<mx:ArrayCollection id="cbrsBufferZoneVis">                    
+	   				<fx:Number>2</fx:Number>
+	   			</mx:ArrayCollection>            
+   			</esri:visibleLayers>
+   		</esri:ArcGISDynamicMapServiceLayer>
+		
+		
+		<esri:ArcGISDynamicMapServiceLayer id="cbrsUnits" visible="true" alpha="0.65"
+										   name="CBRS Units"
+										   url="https://fws.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer">
+			<esri:visibleLayers>             
+				<mx:ArrayCollection id="cbrsUnitsVis">                    
+					<fx:Number>4</fx:Number>
+				</mx:ArrayCollection>            
+			</esri:visibleLayers>
+		</esri:ArcGISDynamicMapServiceLayer>
+		
+		<esri:ArcGISDynamicMapServiceLayer id="cbrsDissUnits" visible="true" alpha="0.65"
+										   name="CBRS Areas"
+										   url="https://fws.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer">
+			<esri:visibleLayers>             
+				<mx:ArrayCollection id="cbrsDissUnitsVis">                    
+					<fx:Number>5</fx:Number>
+				</mx:ArrayCollection>            
+			</esri:visibleLayers>
+		</esri:ArcGISDynamicMapServiceLayer>
+		
+		
+   		<esri:GraphicsLayer id="queryGraphicsLayer"/>
+  		<esri:GraphicsLayer id="infoGraphicsLayer"/>
+		<esri:GraphicsLayer id="measureLayer"/>
+  	</esri:Map>
+  	
+  	<!-- End Main Map -->
+  	
+  	
+  	<!-- Header --> 
+  	
+	<mx:Canvas scaleX=".75" scaleY=".75">
+		<mx:VBox id="header" left="10" top="10" backgroundColor="white" borderColor="black"
+				 borderStyle="solid" buttonMode="true"
+				 click="navigateToURL(new URLRequest('http://www.fws.gov/CBRA'))" color="white"
+				 cornerRadius="5" mouseChildren="false" toolTip="Coastal Barrier Resource Act"
+				 useHandCursor="true">
+			<mx:HBox>
+				<mx:VBox>
+					<mx:Box width="100%" height="5" backgroundColor="white"/>
+					<mx:Box width="100%" backgroundColor="black">
+						<mx:Label width="100%" color="white"
+								  fontFamily="Arial, Helvetica, sans-serif" fontSize="18"
+								  fontWeight="bold" paddingBottom="-2" paddingLeft="120"
+								  paddingTop="5" text="U.S. Fish and Wildlife Service"/>
+					</mx:Box>
+					<mx:Box width="100%" backgroundColor="white">
+						<mx:Label color="black" fontFamily="Arial Narrow, Helvetica, sans-serif"
+								  fontSize="35" fontWeight="bold" paddingBottom="-14"
+								  paddingLeft="120" paddingRight="15" paddingTop="-10"
+								  text="Coastal Barrier Resources System Mapper"/>
+					</mx:Box>
+					<mx:Box width="100%" height="20" backgroundColor="0x425B77"/>
+				</mx:VBox>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:Image id="headerLogo" left="35" top="15" buttonMode="true"
+				  click="navigateToURL(new URLRequest('http://www.fws.gov'))" mouseChildren="false"
+				  source="./assets/images/fwsLogo.png" toolTip="U.S. Fish and Wildlife Service Home"
+				  useHandCursor="true"/>
+	</mx:Canvas>
+	
+	<!-- End Header --> 
+	
+	
+	<!-- Controls -->
+			
+	<wimControls:ExtentNavigator id="navigation" mini="true" styleName="controlBoxTrans"
+								 targetMap="{map}" targetNavigation="{navToolbar}"/>
+	
+	<wimControls:CollapsingSearch id="geocoder" right="5" top="45" searchButtonText="Find Location"
+								  searchFunction="{geoCode}"
+								  searchHint="Enter address or zip code..." startCollapsed="false"
+								  styleName="controlBoxTrans"/>
+	<wimControls:CollapsingSearch id="cbrsSearch" right="5" top="85" searchButtonText="Find CBRS"
+								  searchFunction="{cbrsFind}"
+								  searchHint="Enter CBRS unit number(e.g. Q01P)" startCollapsed="false"
+								  searchIcon="{cbrsIcon}" styleName="controlBoxTrans"
+								  toolTip="Search for CBRS Unit"/>
+	
+	<mx:HBox id="measureButton" right="405" top="5" alpha="{genAlpha}" backgroundColor="black"
+			 borderColor="black" borderStyle="solid" color="white" cornerRadius="5"
+			 paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5">
+		<mx:Button label="Measure" click="startMeasure(event)" styleName="button"/>
+	</mx:HBox>
+	
+	<wimControls:BaseMapSelector id="baseLayers" right="60" top="5" alpha="{genAlpha}"
+								 buttonArray="{textArray}"
+								 creationComplete="{baseLayers.selectedLayer = 1; baseLayers.showLabels = true;}"
+								 textOnly="true"/>
+	
+	<wimControls:FullScreenButton right="5" top="5" alpha="{genAlpha}"/>
+
+	<mx:Box bottom="10" width="100%" horizontalAlign="center">
+		<wimControls:CoordsScale bottom="10" alpha="{genAlpha}" map="{map}"/>
+	</mx:Box>
+	
+	<localControls:MeasureMap id="measureTool" visible="false" right="500" top="100"/>
+	
+	<!-- End Controls -->
+	
+	
+    <!-- Custom legend/layer toggling -->
+	<wimControls:CollapsingBox id="operationLayers" right="5" top="130" boxTitle="Available Layers"
+							   startCollapsed="false">
+		<wimControls:contentGroup>
+			<s:VGroup width="290">
+				<mx:Box width="100%" backgroundAlpha="0.85" backgroundColor="black" cornerRadius="15"
+						paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
+					<s:HGroup>
+						<wimControls:LayerToggle id="cbrsBufferZoneToggle"
+												 layerCollection="{cbrsBufferZoneVis}"
+												 layerID="2" layerTitle="CBRS Buffer Zones"
+												 serviceLayerID="cbrsBufferZone" visible="{map.scale &lt; 100000}" includeInLayout="{map.scale &lt; 100000}"/>
+						<s:Group width="100%">
+							<mx:Box backgroundColor="0xCCCCCC" borderColor="0x444444"
+									borderStyle="solid" borderThickness="1" buttonMode="true"
+									click="showPopUpBox(event, 'infoBox')" mouseChildren="false"
+									paddingBottom="-3" paddingLeft="1" paddingRight="-1"
+									paddingTop="-2" toolTip="CBRS Buffer Zone Information"
+									useHandCursor="true" visible="{map.scale &lt; 100000}" includeInLayout="{map.scale &lt; 100000}">
+								<mx:Text color="blue" fontWeight="bold" text="?"/>
+							</mx:Box>
+								
+						</s:Group>
+					</s:HGroup>
+					
+					<s:HGroup>
+						<wimControls:LayerToggle id="cbrsUnitsToggle"
+												 layerCollection="{cbrsUnitsVis}" layerID="4"
+												 layerTitle="CBRS Units" serviceLayerID="cbrsUnits" visible="{map.scale &lt; 3000000}" includeInLayout="{map.scale &lt; 3000000}"/> 
+						<s:Group width="100%">
+							<mx:Box backgroundColor="0xCCCCCC" borderColor="0x444444"
+									borderStyle="solid" borderThickness="1" buttonMode="true"
+									click="showPopUpBox(event, 'infoBox2')"
+									mouseChildren="false" paddingBottom="-3" paddingLeft="1"
+									paddingRight="-1" paddingTop="-2" toolTip="CBRS units metadata"
+									useHandCursor="true" visible="{map.scale &lt; 3000000}" includeInLayout="{map.scale &lt; 3000000}">
+								<mx:Text color="blue" fontWeight="bold" text="?"/>
+							</mx:Box>
+						</s:Group>
+					</s:HGroup>
+					
+					<s:HGroup>
+						<wimControls:LayerToggle id="cbrsDissUnitsToggle"
+												 layerCollection="{cbrsDissUnitsVis}" layerID="5"
+												 layerTitle="CBRS Units" serviceLayerID="cbrsDissUnits" visible="{map.scale &gt; 3000000}" includeInLayout="{map.scale &gt; 3000000}"/> 
+						<s:Group width="100%">
+							<mx:Box backgroundColor="0xCCCCCC" borderColor="0x444444"
+									borderStyle="solid" borderThickness="1" buttonMode="true"
+									click="showPopUpBox(event, 'infoBox2')"
+									mouseChildren="false" paddingBottom="-3" paddingLeft="1"
+									paddingRight="-1" paddingTop="-2" toolTip="CBRS units metadata"
+									useHandCursor="true" visible="{map.scale &gt; 3000000}" includeInLayout="{map.scale &gt; 3000000}">
+								<mx:Text color="blue" fontWeight="bold" text="?"/>
+							</mx:Box>
+						</s:Group>
+					</s:HGroup>
+					
+				</mx:Box>
+				<mx:Box width="275" backgroundAlpha="0.85" backgroundColor="black" cornerRadius="15"
+						paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10">
+					<s:VGroup width="100" gap="0" paddingBottom="5" paddingLeft="5" paddingRight="5"
+							  paddingTop="5">
+					<localControls:MapServiceLegend id="cbrsDissUnitsLegend"
+												  visible="{cbrsUnitsToggle.selected &amp;&amp; map.scale &gt; 3000000}"
+												  includeInLayout="{map.scale &gt; 3000000}"
+												  legendTitle="CBRS Units" legendWidth="250"
+												  map="{map}" serviceLayer="{cbrsDissUnits}"/>
+					<localControls:MapServiceLegend id="cbrsUnitsLegend"
+												  visible="{cbrsUnitsToggle.selected &amp;&amp; map.scale &lt; 3000000}"
+												  includeInLayout="{map.scale &lt; 3000000}"
+												  legendTitle="CBRS Units" legendWidth="250"
+												  map="{map}" serviceLayer="{cbrsUnits}"/>
+					<localControls:MapServiceLegend id="cbrsBufferZoneLegend"
+												  visible="{cbrsBufferZoneToggle.selected &amp;&amp; map.scale &lt; 100000}"
+												  includeInLayout="{map.scale &lt; 100000}"
+												  legendTitle="CBRS Buffer Zone" legendWidth="250"
+												  map="{map}"
+												  serviceLayer="{cbrsBufferZone}"/>
+					</s:VGroup>
+				</mx:Box>
+			</s:VGroup>
+		</wimControls:contentGroup>
+	</wimControls:CollapsingBox>
+	<!-- End Custom legend/layer toggling -->
+	
+    
+	<!-- <mx:Box right="15" bottom="15" scaleX="0.5" scaleY="0.5" borderColor="black" borderThickness="0" borderStyle="solid" >
+		<mx:Image id="wimLogo" source="./assets/images/WiM_logo_sm.gif" useHandCursor="true" buttonMode="true" mouseChildren="false" toolTip="Wisconsin Internet Mapper Group" click="navigateToURL(new URLRequest('http://wi.water.usgs.gov/wim/index.html'))" />
+	</mx:Box> -->
+    
+    <!-- Contains button to start print and download data. Need to adjust nav bar and position of print button if active -->	
+	<!--<mx:HBox id="printButton" color="white" backgroundColor="0x000000"  borderStyle="solid" cornerRadius="5" paddingBottom="5" paddingLeft="5" paddingRight="5" paddingTop="5"  top="45" right="369">
+    	<mx:Button label="Download Data" click="navigateToURL(new URLRequest('DataDownload.html'))"/>
+    	<mx:Button label="Print Map" click="startPrint(event)" />
+    </mx:HBox>-->
+    
+    
+	<!-- PDF declarations -->
+    
+    <!-- Header for printed map.  Must be customized to specific mapper -->
+    <mx:Canvas id="pdfHeader" visible="false">
+		<mx:VBox left="10" top="10" backgroundColor="white" borderColor="black" borderStyle="solid"
+				 color="white" cornerRadius="5">
+			<mx:HBox>
+				<mx:VBox>
+					<mx:Box width="100%" height="5" backgroundColor="white"/>
+					<mx:Box width="100%" backgroundColor="black">
+						<mx:Label width="100%" color="white"
+								  fontFamily="Arial, Helvetica, sans-serif" fontSize="18"
+								  fontWeight="bold" paddingBottom="-2" paddingLeft="120"
+								  paddingTop="5" text="U.S. Fish and Wildlife Service"/>
+					</mx:Box>
+					<mx:Box width="100%" backgroundColor="white">
+						<mx:Label color="black" fontFamily="Arial Narrow, Helvetica, sans-serif"
+								  fontSize="35" fontWeight="bold" paddingBottom="-14"
+								  paddingLeft="120" paddingRight="15" paddingTop="-10"
+								  text="Coastal Barrier Resource Act"/>
+					</mx:Box>
+					<mx:Box width="100%" height="20" backgroundColor="0x425B77"/>
+				</mx:VBox>
+			</mx:HBox>
+		</mx:VBox>
+		<mx:Image left="35" top="15" buttonMode="true"
+				  click="navigateToURL(new URLRequest('http://www.fws.gov'))" mouseChildren="false"
+				  source="./assets/images/fwsLogo.png" toolTip="U.S. Fish and Wildlife Service Home"
+				  useHandCursor="true"/>
+	</mx:Canvas>
+	    
+	<!-- Legends declarations for printed map.  Customized to specific mapper -->
+	<!--mx:Canvas id="pdfLegend" visible="false">
+		<mx:Image id="cityPrintExp" source="./assets/images/city_legend.gif"  visible="{(censusDataOpt.selectedValue == 'citeis') &amp;&amp; censusDataCB.selected}"  />
+		<mx:Image id="riverPrintExp" source="./assets/images/river_legend.gif" visible="{(censusDataOpt.selectedValue == 'rivers') &amp;&amp; censusDataCB.selected}" />	 
+	</mx:Canvas-->
+	
+	<!-- End PDF Declarations -->
+	
+	
+	<!--<localControls:CBRADisclaimer disclaimerHtmlText="{disclaimerHtml}" map="{map}"/>-->
+	
+</mx:Application>

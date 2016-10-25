@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 05.02.11 - NE - Update to include Title 2 and Title 3 in results for Map Footprints. -->
+<!-- 04.05.11 - NE - Added results of CBRS Unit query. -->
+<!-- 04.04.11 - NE - Created. -->
+<controls:WiMInfoWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						xmlns:s="library://ns.adobe.com/flex/spark" 
+						xmlns:mx="library://ns.adobe.com/flex/mx" 
+						xmlns:controls="gov.usgs.wim.controls.*" 
+						close="closeWindow(event)" 
+						minWidth="250"
+						creationComplete="componentLoad()"
+						title="CBRS Unit Identify Results">
+	<fx:Style source="assets/styles/main.css"/>
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import mx.collections.ArrayCollection;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			
+			protected function componentLoad():void
+			{
+				maximizeButton.visible = false;
+				maximizeButton.includeInLayout = false;
+				minimizeButton.right = 24;
+			}
+			
+			  protected function closeWindow(event:CloseEvent):void {
+				FlexGlobals.topLevelApplication.queryGraphicsLayer.clear(); 
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	
+	<mx:Box backgroundColor="black" height="100%" width="100%" color="white">
+		<s:Group>
+			<s:layout>
+				<s:VerticalLayout/>
+			</s:layout>
+			<s:Group>
+				<s:layout>
+					<s:HorizontalLayout paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"/>
+				</s:layout>
+				<s:Group fontSize="14">
+					<s:layout>
+						<s:VerticalLayout paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"/>
+					</s:layout>
+					<s:HGroup>
+						<s:Label fontWeight="bold" text="Unit: "/><s:Label id="unitLabel" text="{data.Unit}"/>
+					</s:HGroup>
+					<s:HGroup>
+						<s:Label fontWeight="bold" text="Unit Name: "/><s:Label text="{data.Name}"/>
+					</s:HGroup>
+					<s:HGroup>
+						<s:Label fontWeight="bold" text="Unit Type: "/><s:Label text="{data.Unit_Type}"/>
+					</s:HGroup>
+					<s:HGroup>
+						<s:Label fontWeight="bold" text="Data Accuracy Tier: "/><s:Label text=" Tier {data.Tier}"/>
+						
+						<s:Group width="100%">
+							<mx:Box backgroundColor="0xCCCCCC" borderColor="0x444444"
+									borderStyle="solid" borderThickness="1" buttonMode="true"
+									click="FlexGlobals.topLevelApplication.showPopUpBox(event, 'tierInfoBox')" mouseChildren="false"
+									paddingBottom="-3" paddingLeft="1" paddingRight="-1"
+									paddingTop="-2" toolTip="Tier Information"
+									useHandCursor="true" >
+								<mx:Text color="blue" fontWeight="bold" text="?"/>
+							</mx:Box>
+							
+						</s:Group>
+						
+					</s:HGroup>
+					<s:HGroup>
+						<s:Label fontWeight="bold" text="Total Acreage: "/><s:Label text="{data.totalAcreage}"/>
+					</s:HGroup>
+				</s:Group>
+				<s:Rect verticalCenter="0" height="30" width="30" top="30" right="10">
+					<s:stroke>
+						<s:SolidColorStroke color="{FlexGlobals.topLevelApplication.aQuerySym.outline.color}" weight="2"/>
+					</s:stroke>
+				</s:Rect>
+			</s:Group>
+			<s:Group>
+				<s:layout>
+					<s:HorizontalLayout paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"/>
+				</s:layout>
+				<s:Group fontSize="14">
+					<s:layout>
+						<s:VerticalLayout paddingBottom="10" paddingLeft="10" paddingRight="10" paddingTop="10"/>
+					</s:layout>
+					<s:HGroup>
+						<s:Label fontWeight="bold" text="Map Link: "/><s:Label styleName="{(data.Map_Link != ('None' || null)) ? 'line' : 'noline'}" text="{(data.Map_Link != ('None' || null)) ? 'click here' : 'NONE'}" useHandCursor="true" buttonMode="true" mouseChildren="false" click="(data.Map_Link != ('None' || null)) ? navigateToURL(new URLRequest(data.Map_Link)) : ''"/>
+					</s:HGroup>
+					<s:HGroup>
+						<s:Label fontWeight="bold" text="Map Date: "/><s:Label text="{data.Map_Date}"/>
+					</s:HGroup>
+					<s:HGroup>
+						<s:Label fontWeight="bold" text="Title: "/><s:Label text="{data.Title}"/>
+					</s:HGroup>
+					<s:HGroup includeInLayout="{(data.Title_2 != null &amp;&amp; data.Title_2 != '') ? true : false}" visible="{(data.Title_2 != null &amp;&amp; data.Title_2 != '') ? true : false}">
+						<s:Label fontWeight="bold" text="Title 2: "/><s:Label text="{data.Title_2}"/>
+					</s:HGroup>
+					<s:HGroup includeInLayout="{(data.Title_3 != null &amp;&amp; data.Title_3 != '') ? true : false}" visible="{(data.Title_3 != null &amp;&amp; data.Title_3 != '') ? true : false}">
+						<s:Label fontWeight="bold" text="Title 3: "/><s:Label text="{data.Title_3}"/>
+					</s:HGroup>
+					<mx:Text width="325" condenseWhite="true" textAlign="left">
+						<mx:htmlText>
+							<![CDATA[
+							<p> CBRS units extend seaward out to either the
+							20 or 30 foot bathymetric contour (depending on the
+							location of the unit). <b>The true seaward extent of the 
+							units is not shown in the CBRS mapper.</b>
+							For additional information, please contact <font color='#0000FF'><a target='_blank' href="mailto:cbra@fws.gov">CBRA@fws.gov</a></font>. 
+					
+							]]>
+						</mx:htmlText>
+					</mx:Text>	
+
+					<!--<s:HGroup>
+						<s:Label text=" CBRS units extend seaward out to either the {'\n'}
+								 		20 or 30 foot bathymetric contour (depending on the {'\n'}
+								 		location of the unit). The true seaward extent of the {'\n'}
+								 		units is not shown in the CBRS mapper. {'\n'}
+								 		For additional information, please contact CBRA@fws.gov. "/>
+					</s:HGroup>-->
+				</s:Group>
+				<s:Rect height="30" width="30" top="30" right="10">
+					<s:stroke>
+						<s:SolidColorStroke color="{FlexGlobals.topLevelApplication.bQuerySym.outline.color}" weight="2"/>
+					</s:stroke>
+				</s:Rect>
+			</s:Group>
+		</s:Group>
+	</mx:Box>
+		
+	
+</controls:WiMInfoWindow>
