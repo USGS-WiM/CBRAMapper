@@ -54,7 +54,7 @@
     
 	<fx:Declarations>
 		
-		<esri:GeometryService id="geomService" url="https://fws.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
+		<esri:GeometryService id="geomService" url="https://fwsmapper.wim.usgs.gov/arcgis/rest/services/Utilities/Geometry/GeometryServer"/>
 		
 		<esri:NavigationTool id="navToolbar" map="{map}"/>
 		
@@ -76,7 +76,7 @@
 		
 		
 		<esri:FindTask id="cbrsTask" executeComplete="cbrsResult(event)" showBusyCursor="true"
-					   url="https://fws.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer"/>
+					   url="https://fwspublic.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer"/>
 		<esri:FindParameters id="cbrsParams" contains="true" layerIds="[4]"
 							 outSpatialReference="{map.spatialReference}" returnGeometry="true"
 							 searchFields="[Unit]" searchText="{cbrsSearch.searchValue.text}"/>
@@ -514,7 +514,7 @@
 		
 	    <esri:ArcGISDynamicMapServiceLayer id="cbrsBufferZone" visible="true" alpha="0.65"
 										   name="CBRS Determination Zones"
-										   url="https://fws.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer">
+										   url="https://fwspublic.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer">
    			<esri:visibleLayers>             
 	   			<mx:ArrayCollection id="cbrsBufferZoneVis">                    
 	   				<fx:Number>2</fx:Number>
@@ -525,7 +525,7 @@
 		
 		<esri:ArcGISDynamicMapServiceLayer id="cbrsUnits" visible="true" alpha="0.65"
 										   name="CBRS Units"
-										   url="https://fws.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer">
+										   url="https://fwspublic.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer">
 			<esri:visibleLayers>             
 				<mx:ArrayCollection id="cbrsUnitsVis">                    
 					<fx:Number>4</fx:Number>
@@ -535,7 +535,7 @@
 		
 		<esri:ArcGISDynamicMapServiceLayer id="cbrsDissUnits" visible="true" alpha="0.65"
 										   name="CBRS Areas"
-										   url="https://fws.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer">
+										   url="https://fwspublic.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer">
 			<esri:visibleLayers>             
 				<mx:ArrayCollection id="cbrsDissUnitsVis">                    
 					<fx:Number>5</fx:Number>
