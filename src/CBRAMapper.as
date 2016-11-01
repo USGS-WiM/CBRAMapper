@@ -132,7 +132,7 @@ import spark.components.Group;
 		    	 				
     			var identifyTask:IdentifyTask = new IdentifyTask();
 				identifyTask.showBusyCursor = true;
-				identifyTask.url = "https://fws.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer";
+				identifyTask.url = "https://fwspublic.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer";
     			identifyTask.execute( identifyParameters, new AsyncResponder(infoResult, infoFault, event) );
 		    }
     		
@@ -146,7 +146,7 @@ import spark.components.Group;
     		{
 				var buffZoneClick: Boolean = false;
 				for (i=0;i<resultSet.length;i++) {
-					if (resultSet[i].layerName == "CBRS Determination Zone") {
+					if (resultSet[i].layerName == "CBRS_Determination_Zone") {
 							
 							showPopUpBox(event, 'infoBox3');
 							buffZoneClick = true;
@@ -162,7 +162,7 @@ import spark.components.Group;
 				var unit:String = '';
 				for (i=0;i<resultSet.length;i++) {
 					
-					if (resultSet[i].layerName == "CBRS Units") {
+					if (resultSet[i].layerName == "CBRS_Units") {
 						containsUnit = true;
 						unit = resultSet[i].feature.attributes.Unit;
 					}
@@ -180,7 +180,7 @@ import spark.components.Group;
 					//var totalAcreage:String;
 					
 					for (i=0;i<resultSet.length;i++) {
-						if (resultSet[i].layerName == "CBRS Map Footprints") {
+						if (resultSet[i].layerName == "CBRS_Map_Footprints") {
 							trace(resultSet[i].feature.attributes.Title.search(unit) != -1);
 							trace(resultSet[i].feature.attributes.Title.search(unit));
 							trace(resultSet[i].feature.attributes.Title);
@@ -188,7 +188,7 @@ import spark.components.Group;
 							trace(resultSet[i].feature.attributes.Title_2);
 							trace(resultSet[i].feature.attributes.Title_3);
 						}
-						if (resultSet[i].layerName == "CBRS Units") {
+						if (resultSet[i].layerName == "CBRS_Units") {
 							if (aGraphic == null) {
 								aGraphic = resultSet[i].feature;
 								aGraphic.symbol = aQuerySym;
@@ -216,7 +216,7 @@ import spark.components.Group;
 								
 								}
 							}
-						} else if (resultSet[i].layerName == "CBRS Map Footprints" && resultSet[i].feature.attributes.Title.search(unit) != -1) {
+						} else if (resultSet[i].layerName == "CBRS_Map_Footprints" && resultSet[i].feature.attributes.Title.search(unit) != -1) {
 							if (bGraphic == null) {
 								bGraphic = resultSet[i].feature;
 								bGraphic.symbol = bQuerySym;
@@ -233,7 +233,7 @@ import spark.components.Group;
 									dataObj.Title_3 = resultSet[i].feature.attributes.Title_3;
 								}
 							}
-						} else if (resultSet[i].layerName == "CBRS Map Footprints" && resultSet[i].feature.attributes.Title_2.search(unit) != -1) {
+						} else if (resultSet[i].layerName == "CBRS_Map_Footprints" && resultSet[i].feature.attributes.Title_2.search(unit) != -1) {
 							if (bGraphic == null) {
 								bGraphic = resultSet[i].feature;
 								bGraphic.symbol = bQuerySym;
@@ -250,7 +250,7 @@ import spark.components.Group;
 									dataObj.Title_3 = resultSet[i].feature.attributes.Title_3;
 								}
 							}
-						} else if (resultSet[i].layerName == "CBRS Map Footprints" && resultSet[i].feature.attributes.Title_3.search(unit) != -1) {
+						} else if (resultSet[i].layerName == "CBRS_Map_Footprints" && resultSet[i].feature.attributes.Title_3.search(unit) != -1) {
 							if (bGraphic == null) {
 								bGraphic = resultSet[i].feature;
 								bGraphic.symbol = bQuerySym;
@@ -272,7 +272,7 @@ import spark.components.Group;
 					
 					if (bGraphic == null) {
 						for (i=0;i<resultSet.length;i++) {
-							if (resultSet[i].layerName == "CBRS Map Footprints") {
+							if (resultSet[i].layerName == "CBRS_Map_Footprints") {
 								bGraphic = resultSet[i].feature;
 								bGraphic.symbol = bQuerySym;
 								queryGraphicsLayer.add(bGraphic);
