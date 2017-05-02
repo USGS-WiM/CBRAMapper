@@ -132,7 +132,7 @@ import spark.components.Group;
 		    	 				
     			var identifyTask:IdentifyTask = new IdentifyTask();
 				identifyTask.showBusyCursor = true;
-				identifyTask.url = "https://fwspublic.wim.usgs.gov/arcgis/rest/services/CBRAMapper/GeoCBRA/MapServer";
+				identifyTask.url = "https://fwsprimary.wim.usgs.gov/server/rest/services/CBRAMapper/GeoCBRA/MapServer";
     			identifyTask.execute( identifyParameters, new AsyncResponder(infoResult, infoFault, event) );
 		    }
     		
@@ -158,154 +158,154 @@ import spark.components.Group;
 				if (!buffZoneClick) {
 					
 				
-				var containsUnit:Boolean = false;
-				var unit:String = '';
-				for (i=0;i<resultSet.length;i++) {
-					
-					if (resultSet[i].layerName == "CBRS_Units") {
-						containsUnit = true;
-						unit = resultSet[i].feature.attributes.Unit;
-					}
-				}
-				
-    			if (resultSet.length != 0 && containsUnit == true) {
-					
-					var i:int;
-					//var cbrsData:Object = new Object();
-					//var cbrsData:ArrayCollection = new ArrayCollection();
-					var dataObj:Object = new Object();
-					var aGraphic:Graphic;
-					var bGraphic:Graphic;
-					
-					//var totalAcreage:String;
-					
+					var containsUnit:Boolean = false;
+					var unit:String = '';
 					for (i=0;i<resultSet.length;i++) {
-						if (resultSet[i].layerName == "CBRS_Map_Footprints") {
-							trace(resultSet[i].feature.attributes.Title.search(unit) != -1);
-							trace(resultSet[i].feature.attributes.Title.search(unit));
-							trace(resultSet[i].feature.attributes.Title);
-							trace(unit);
-							trace(resultSet[i].feature.attributes.Title_2);
-							trace(resultSet[i].feature.attributes.Title_3);
-						}
-						if (resultSet[i].layerName == "CBRS_Units") {
-							if (aGraphic == null) {
-								aGraphic = resultSet[i].feature;
-								aGraphic.symbol = aQuerySym;
-			            		queryGraphicsLayer.add(aGraphic);
-								
-								if (dataObj == null) {
-									dataObj = resultSet[i].feature.attributes;
-								} else {
-									dataObj.Unit = resultSet[i].feature.attributes.Unit;
-									dataObj.Name = resultSet[i].feature.attributes.Name;
-									dataObj.Unit_Type = resultSet[i].feature.attributes.Unit_Type;
-									dataObj.Year_Designated = resultSet[i].feature.attributes.Year_Designated;
-									dataObj.Tier = resultSet[i].feature.attributes.Tier;
-									dataObj.Fast_Acres = resultSet[i].feature.attributes.Fast_Acres;
-									dataObj.Wet_Acres = resultSet[i].feature.attributes.Wet_Acres;
-									
-									if (dataObj.Tier == 2){
-										dataObj.totalAcreage = "Approximately " + (Number(dataObj.Fast_Acres) + Number(dataObj.Wet_Acres)) + " acres.";
-										
-									} else {
-										
-										dataObj.totalAcreage = "Data not available at this time.";
-									}
-									
-								
-								}
-							}
-						} else if (resultSet[i].layerName == "CBRS_Map_Footprints" && resultSet[i].feature.attributes.Title.search(unit) != -1) {
-							if (bGraphic == null) {
-								bGraphic = resultSet[i].feature;
-								bGraphic.symbol = bQuerySym;
-								queryGraphicsLayer.add(bGraphic);
-								
-								if (dataObj == null) {
-									dataObj = resultSet[i].feature.attributes;
-								} else {
-									dataObj.Map_Link = resultSet[i].feature.attributes.Map_Link;
-									dataObj.Map_Date = resultSet[i].feature.attributes.Map_Date;
-									dataObj.Scale = resultSet[i].feature.attributes.Scale;
-									dataObj.Title = resultSet[i].feature.attributes.Title;
-									dataObj.Title_2 = resultSet[i].feature.attributes.Title_2;
-									dataObj.Title_3 = resultSet[i].feature.attributes.Title_3;
-								}
-							}
-						} else if (resultSet[i].layerName == "CBRS_Map_Footprints" && resultSet[i].feature.attributes.Title_2.search(unit) != -1) {
-							if (bGraphic == null) {
-								bGraphic = resultSet[i].feature;
-								bGraphic.symbol = bQuerySym;
-								queryGraphicsLayer.add(bGraphic);
-								
-								if (dataObj == null) {
-									dataObj = resultSet[i].feature.attributes;
-								} else {
-									dataObj.Map_Link = resultSet[i].feature.attributes.Map_Link
-									dataObj.Map_Date = resultSet[i].feature.attributes.Map_Date;
-									dataObj.Scale = resultSet[i].feature.attributes.Scale;
-									dataObj.Title = resultSet[i].feature.attributes.Title;
-									dataObj.Title_2 = resultSet[i].feature.attributes.Title_2;
-									dataObj.Title_3 = resultSet[i].feature.attributes.Title_3;
-								}
-							}
-						} else if (resultSet[i].layerName == "CBRS_Map_Footprints" && resultSet[i].feature.attributes.Title_3.search(unit) != -1) {
-							if (bGraphic == null) {
-								bGraphic = resultSet[i].feature;
-								bGraphic.symbol = bQuerySym;
-								queryGraphicsLayer.add(bGraphic);
-								
-								if (dataObj == null) {
-									dataObj = resultSet[i].feature.attributes;
-								} else {
-									dataObj.Map_Link = resultSet[i].feature.attributes.Map_Link
-									dataObj.Map_Date = resultSet[i].feature.attributes.Map_Date;
-									dataObj.Scale = resultSet[i].feature.attributes.Scale;
-									dataObj.Title = resultSet[i].feature.attributes.Title;
-									dataObj.Title_2 = resultSet[i].feature.attributes.Title_2;
-									dataObj.Title_3 = resultSet[i].feature.attributes.Title_3;
-								}
-							}
+						
+						if (resultSet[i].layerName == "CBRS Units") {
+							containsUnit = true;
+							unit = resultSet[i].feature.attributes.Unit;
 						}
 					}
 					
-					if (bGraphic == null) {
+	    			if (resultSet.length != 0 && containsUnit == true) {
+						
+						var i:int;
+						//var cbrsData:Object = new Object();
+						//var cbrsData:ArrayCollection = new ArrayCollection();
+						var dataObj:Object = new Object();
+						var aGraphic:Graphic;
+						var bGraphic:Graphic;
+						
+						//var totalAcreage:String;
+						
 						for (i=0;i<resultSet.length;i++) {
-							if (resultSet[i].layerName == "CBRS_Map_Footprints") {
-								bGraphic = resultSet[i].feature;
-								bGraphic.symbol = bQuerySym;
-								queryGraphicsLayer.add(bGraphic);
-								
-								if (dataObj == null) {
-									dataObj = resultSet[i].feature.attributes;
-								} else {
-									dataObj.Map_Link = resultSet[i].feature.attributes.Map_Link
-									dataObj.Map_Date = resultSet[i].feature.attributes.Map_Date;
-									dataObj.Scale = resultSet[i].feature.attributes.Scale;
-									dataObj.Title = resultSet[i].feature.attributes.Title;
-									dataObj.Title_2 = resultSet[i].feature.attributes.Title_2;
-									dataObj.Title_3 = resultSet[i].feature.attributes.Title_3;
+							if (resultSet[i].layerName == "CBRS Map Footprints") {
+								trace(resultSet[i].feature.attributes.Title.search(unit) != -1);
+								trace(resultSet[i].feature.attributes.Title.search(unit));
+								trace(resultSet[i].feature.attributes.Title);
+								trace(unit);
+								trace(resultSet[i].feature.attributes.Title_2);
+								trace(resultSet[i].feature.attributes.Title_3);
+							}
+							if (resultSet[i].layerName == "CBRS Units") {
+								if (aGraphic == null) {
+									aGraphic = resultSet[i].feature;
+									aGraphic.symbol = aQuerySym;
+				            		queryGraphicsLayer.add(aGraphic);
+									
+									if (dataObj == null) {
+										dataObj = resultSet[i].feature.attributes;
+									} else {
+										dataObj.Unit = resultSet[i].feature.attributes.Unit;
+										dataObj.Name = resultSet[i].feature.attributes.Name;
+										dataObj.Unit_Type = resultSet[i].feature.attributes.Unit_Type;
+										dataObj.Year_Designated = resultSet[i].feature.attributes.Year_Designated;
+										dataObj.Tier = resultSet[i].feature.attributes.Tier;
+										dataObj.Fast_Acres = resultSet[i].feature.attributes.Fast_Acres;
+										dataObj.Wet_Acres = resultSet[i].feature.attributes.Wet_Acres;
+										
+										if (dataObj.Tier == 2){
+											dataObj.totalAcreage = "Approximately " + (Number(dataObj.Fast_Acres) + Number(dataObj.Wet_Acres)) + " acres.";
+											
+										} else {
+											
+											dataObj.totalAcreage = "Data not available at this time.";
+										}
+										
+									
+									}
+								}
+							} else if (resultSet[i].layerName == "CBRS Map Footprints" && resultSet[i].feature.attributes.Title.search(unit) != -1) {
+								if (bGraphic == null) {
+									bGraphic = resultSet[i].feature;
+									bGraphic.symbol = bQuerySym;
+									queryGraphicsLayer.add(bGraphic);
+									
+									if (dataObj == null) {
+										dataObj = resultSet[i].feature.attributes;
+									} else {
+										dataObj.Map_Link = resultSet[i].feature.attributes.Map_Link;
+										dataObj.Map_Date = resultSet[i].feature.attributes.Map_Date;
+										dataObj.Scale = resultSet[i].feature.attributes.Scale;
+										dataObj.Title = resultSet[i].feature.attributes.Title;
+										dataObj.Title_2 = resultSet[i].feature.attributes.Title_2;
+										dataObj.Title_3 = resultSet[i].feature.attributes.Title_3;
+									}
+								}
+							} else if (resultSet[i].layerName == "CBRS Map Footprints" && resultSet[i].feature.attributes.Title_2.search(unit) != -1) {
+								if (bGraphic == null) {
+									bGraphic = resultSet[i].feature;
+									bGraphic.symbol = bQuerySym;
+									queryGraphicsLayer.add(bGraphic);
+									
+									if (dataObj == null) {
+										dataObj = resultSet[i].feature.attributes;
+									} else {
+										dataObj.Map_Link = resultSet[i].feature.attributes.Map_Link
+										dataObj.Map_Date = resultSet[i].feature.attributes.Map_Date;
+										dataObj.Scale = resultSet[i].feature.attributes.Scale;
+										dataObj.Title = resultSet[i].feature.attributes.Title;
+										dataObj.Title_2 = resultSet[i].feature.attributes.Title_2;
+										dataObj.Title_3 = resultSet[i].feature.attributes.Title_3;
+									}
+								}
+							} else if (resultSet[i].layerName == "CBRS Map Footprints" && resultSet[i].feature.attributes.Title_3.search(unit) != -1) {
+								if (bGraphic == null) {
+									bGraphic = resultSet[i].feature;
+									bGraphic.symbol = bQuerySym;
+									queryGraphicsLayer.add(bGraphic);
+									
+									if (dataObj == null) {
+										dataObj = resultSet[i].feature.attributes;
+									} else {
+										dataObj.Map_Link = resultSet[i].feature.attributes.Map_Link
+										dataObj.Map_Date = resultSet[i].feature.attributes.Map_Date;
+										dataObj.Scale = resultSet[i].feature.attributes.Scale;
+										dataObj.Title = resultSet[i].feature.attributes.Title;
+										dataObj.Title_2 = resultSet[i].feature.attributes.Title_2;
+										dataObj.Title_3 = resultSet[i].feature.attributes.Title_3;
+									}
 								}
 							}
 						}
-					}
-					
-					trace("title :"+dataObj.Title+":");
-					trace("title 2:"+dataObj.Title_2+":");
-					trace("title 3:"+dataObj.Title_3+":");
-					
-					_queryWindow = PopUpManager.createPopUp(map, CBRADataWindow, false) as WiMInfoWindow;
-					_queryWindow.addEventListener(CloseEvent.CLOSE,closePopUp);
-					_queryWindow.data = dataObj;
-					_queryWindow.setStyle("skinClass", CBRADataWindowSkin);
-					_queryWindow.x = (FlexGlobals.topLevelApplication.width/2) - (_queryWindow.width/2);
-					_queryWindow.y = (FlexGlobals.topLevelApplication.height/2) - (_queryWindow.height/2);
-					
-					
-					
-				} 
-			}  
+						
+						if (bGraphic == null) {
+							for (i=0;i<resultSet.length;i++) {
+								if (resultSet[i].layerName == "CBRS Map Footprints") {
+									bGraphic = resultSet[i].feature;
+									bGraphic.symbol = bQuerySym;
+									queryGraphicsLayer.add(bGraphic);
+									
+									if (dataObj == null) {
+										dataObj = resultSet[i].feature.attributes;
+									} else {
+										dataObj.Map_Link = resultSet[i].feature.attributes.Map_Link
+										dataObj.Map_Date = resultSet[i].feature.attributes.Map_Date;
+										dataObj.Scale = resultSet[i].feature.attributes.Scale;
+										dataObj.Title = resultSet[i].feature.attributes.Title;
+										dataObj.Title_2 = resultSet[i].feature.attributes.Title_2;
+										dataObj.Title_3 = resultSet[i].feature.attributes.Title_3;
+									}
+								}
+							}
+						}
+						
+						trace("title :"+dataObj.Title+":");
+						trace("title 2:"+dataObj.Title_2+":");
+						trace("title 3:"+dataObj.Title_3+":");
+						
+						_queryWindow = PopUpManager.createPopUp(map, CBRADataWindow, false) as WiMInfoWindow;
+						_queryWindow.addEventListener(CloseEvent.CLOSE,closePopUp);
+						_queryWindow.data = dataObj;
+						_queryWindow.setStyle("skinClass", CBRADataWindowSkin);
+						_queryWindow.x = (FlexGlobals.topLevelApplication.width/2) - (_queryWindow.width/2);
+						_queryWindow.y = (FlexGlobals.topLevelApplication.height/2) - (_queryWindow.height/2);
+						
+						
+						
+					} 
+				}  
 			}
     		private function infoFault(info:Object, token:Object = null):void
     		{
