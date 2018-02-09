@@ -17,7 +17,7 @@
 
     "homepageURL": "https://ccviewer.wim.usgs.gov/CBRAMapper",
     "downloadURL": "https://github.com/USGS-WiM/CBRAMapper/archive/master.zip",
-    "disclaimerURL": "https://github.com/USGS-WiM/CBRAMapper/blob/master/LICENSE.md",
+    "disclaimerURL": "https://github.com/USGS-WiM/CBRAMapper/blob/master/DISCLAIMER.md",
     "repositoryUrl": "https://github.com/USGS-WiM/CBRAMapper",
     "vcs": "git",
 
